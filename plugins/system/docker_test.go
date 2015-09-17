@@ -31,7 +31,6 @@ func TestDockerStats_GenerateStats(t *testing.T) {
 			Steal:     0.0001,
 			Guest:     8.1,
 			GuestNice: 0.324,
-			Stolen:    0.051,
 		},
 		Mem: &docker.CgroupMemStat{
 			ContainerID:             "blah",

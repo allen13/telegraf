@@ -33,7 +33,6 @@ func TestSystemStats_GenerateStats(t *testing.T) {
 		Steal:     0.0001,
 		Guest:     8.1,
 		GuestNice: 0.324,
-		Stolen:    0.051,
 	}
 
 	cts2 := cpu.CPUTimesStat{
@@ -48,7 +47,6 @@ func TestSystemStats_GenerateStats(t *testing.T) {
 		Steal:     0.0002,   // increased by 0.0001
 		Guest:     12.9,     // increased by 4.8
 		GuestNice: 2.524,    // increased by 2.2
-		Stolen:    0.281,    // increased by 0.23
 	}
 
 	mps.On("CPUTimes").Return([]cpu.CPUTimesStat{cts}, nil)
@@ -144,8 +142,7 @@ func TestSystemStats_GenerateStats(t *testing.T) {
 	assertContainsTaggedFloat(t, acc, "softirq", 0.11, 0, cputags)
 	assertContainsTaggedFloat(t, acc, "steal", 0.0001, 0, cputags)
 	assertContainsTaggedFloat(t, acc, "guest", 8.1, 0, cputags)
-	assertContainsTaggedFloat(t, acc, "guestNice", 0.324, 0, cputags)
-	assertContainsTaggedFloat(t, acc, "stolen", 0.051, 0, cputags)
+	assertContainsTaggedFloat(t, acc, "guest_nice", 0.324, 0, cputags)
 	assertContainsTaggedFloat(t, acc, "busy", 21.4851, 0.0005, cputags)
 
 	mps2 := MockPS{}
@@ -170,21 +167,19 @@ func TestSystemStats_GenerateStats(t *testing.T) {
 	assertContainsTaggedFloat(t, acc, "steal", 0.0002, 0, cputags)
 	assertContainsTaggedFloat(t, acc, "guest", 12.9, 0, cputags)
 	assertContainsTaggedFloat(t, acc, "guestNice", 2.524, 0, cputags)
-	assertContainsTaggedFloat(t, acc, "stolen", 0.281, 0, cputags)
 	assertContainsTaggedFloat(t, acc, "busy", 42.7152, 0.0005, cputags)
 
-	assertContainsTaggedFloat(t, acc, "percentageUser", 8.3, 0.0005, cputags)
-	assertContainsTaggedFloat(t, acc, "percentageSystem", 2.7, 0.0005, cputags)
-	assertContainsTaggedFloat(t, acc, "percentageIdle", 78.7699, 0.0005, cputags)
-	assertContainsTaggedFloat(t, acc, "percentageNice", 1.2, 0.0005, cputags)
-	assertContainsTaggedFloat(t, acc, "percentageIowait", 0.5, 0.0005, cputags)
-	assertContainsTaggedFloat(t, acc, "percentageIrq", 1.1, 0.0005, cputags)
-	assertContainsTaggedFloat(t, acc, "percentageSoftirq", 0.2, 0.0005, cputags)
-	assertContainsTaggedFloat(t, acc, "percentageSteal", 0.0001, 0.0005, cputags)
-	assertContainsTaggedFloat(t, acc, "percentageGuest", 4.8, 0.0005, cputags)
-	assertContainsTaggedFloat(t, acc, "percentageGuestNice", 2.2, 0.0005, cputags)
-	assertContainsTaggedFloat(t, acc, "percentageStolen", 0.23, 0.0005, cputags)
-	assertContainsTaggedFloat(t, acc, "percentageBusy", 21.2301, 0.0005, cputags)
+	assertContainsTaggedFloat(t, acc, "percent_user", 8.3, 0.0005, cputags)
+	assertContainsTaggedFloat(t, acc, "percent_system", 2.7, 0.0005, cputags)
+	assertContainsTaggedFloat(t, acc, "percent_idle", 78.7699, 0.0005, cputags)
+	assertContainsTaggedFloat(t, acc, "percent_nice", 1.2, 0.0005, cputags)
+	assertContainsTaggedFloat(t, acc, "percent_iowait", 0.5, 0.0005, cputags)
+	assertContainsTaggedFloat(t, acc, "percent_irq", 1.1, 0.0005, cputags)
+	assertContainsTaggedFloat(t, acc, "percent_softirq", 0.2, 0.0005, cputags)
+	assertContainsTaggedFloat(t, acc, "percent_steal", 0.0001, 0.0005, cputags)
+	assertContainsTaggedFloat(t, acc, "percent_guest", 4.8, 0.0005, cputags)
+	assertContainsTaggedFloat(t, acc, "percent_guest_nice", 2.2, 0.0005, cputags)
+	assertContainsTaggedFloat(t, acc, "percent_busy", 21.2301, 0.0005, cputags)
 
 	err = (&DiskStats{&mps}).Gather(&acc)
 	require.NoError(t, err)
