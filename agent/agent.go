@@ -114,28 +114,24 @@ func (a *Agent) gatherer(
 	defer ticker.Stop()
 
 	for {
-		var outerr error
+		go func() {
+			acc := NewAccumulator(input.Config, metricC)
+			acc.SetDebug(a.Config.Agent.Debug)
+			acc.SetPrecision(a.Config.Agent.Precision.Duration,
+				a.Config.Agent.Interval.Duration)
+			acc.setDefaultTags(a.Config.Tags)
 
-		acc := NewAccumulator(input.Config, metricC)
-		acc.SetDebug(a.Config.Agent.Debug)
-		acc.SetPrecision(a.Config.Agent.Precision.Duration,
-			a.Config.Agent.Interval.Duration)
-		acc.setDefaultTags(a.Config.Tags)
+			internal.RandomSleep(a.Config.Agent.CollectionJitter.Duration, shutdown)
 
-		internal.RandomSleep(a.Config.Agent.CollectionJitter.Duration, shutdown)
+			start := time.Now()
+			gatherWithTimeout(shutdown, input, acc, interval)
+			elapsed := time.Since(start)
 
-		start := time.Now()
-		gatherWithTimeout(shutdown, input, acc, interval)
-		elapsed := time.Since(start)
-
-		if outerr != nil {
-			return outerr
-		}
-		if a.Config.Agent.Debug {
-			log.Printf("Input [%s] gathered metrics, (%s interval) in %s\n",
-				input.Name, interval, elapsed)
-		}
-
+			if a.Config.Agent.Debug {
+				log.Printf("Input [%s] gathered metrics, (%s interval) in %s\n",
+					input.Name, interval, elapsed)
+			}
+		}()
 		select {
 		case <-shutdown:
 			return nil
@@ -156,8 +152,6 @@ func gatherWithTimeout(
 	acc *accumulator,
 	timeout time.Duration,
 ) {
-	ticker := time.NewTicker(timeout)
-	defer ticker.Stop()
 	done := make(chan error)
 	go func() {
 		done <- input.Input.Gather(acc)
@@ -170,11 +164,6 @@ func gatherWithTimeout(
 				log.Printf("ERROR in input [%s]: %s", input.Name, err)
 			}
 			return
-		case <-ticker.C:
-			log.Printf("ERROR: input [%s] took longer to collect than "+
-				"collection interval (%s)",
-				input.Name, timeout)
-			continue
 		case <-shutdown:
 			return
 		}
